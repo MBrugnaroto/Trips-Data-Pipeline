@@ -1,0 +1,3 @@
+pandas
+postgres
+psycopg2
