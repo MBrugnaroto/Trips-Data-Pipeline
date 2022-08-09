@@ -1,9 +1,13 @@
 DOCKER_COMPOSE := docker compose -f
+DOCKER_BUILD := docker build .
+DOCKER_PUSH := docker push --all-tags
+USER := $(shell whoami)
 
 all: system/env docker/source docker/airflow docker/datawarehouse 
 
 system/env:
 	mkdir -p source/data source/data/statistic_per_vehicle
+	sh prepare-variables.sh
 
 docker/source:
 	${DOCKER_COMPOSE} ./env/datasource/docker-compose.yml up -d
@@ -14,8 +18,25 @@ docker/airflow:
 docker/datawarehouse: 
 	${DOCKER_COMPOSE} ./env/datawarehouse/docker-compose.yml up -d
 
+docker/buildimages:
+	${DOCKER_BUILD} -t ${USER}/datasource_postgres:latest -f env/datasource/Dockerfile
+	${DOCKER_BUILD} -t ${USER}/datawarehouse_postgres:latest -f env/datawarehouse/Dockerfile
+	${DOCKER_BUILD} -t ${USER}/extractor_vehicle_statistics:latest -t mbrugnar/extractor_vehicle_statistics:v1.0 -f env/app/statistic_per_vehicle/extractor/Dockerfile
+	${DOCKER_BUILD} -t ${USER}/loader_vehicle_statistics:latest -t mbrugnar/loader_vehicle_statistics:v1.0 -f env/app/statistic_per_vehicle/loader/Dockerfile
+	${DOCKER_BUILD} -t ${USER}/senderreport_vehicle_statistics:latest -t mbrugnar/senderreport_vehicle_statistics:v1.0 -f env/app/statistic_per_vehicle/sender/Dockerfile
+
+docker/pushimages:
+	${DOCKER_PUSH} ${USER}/extractor_vehicle_statistics
+	${DOCKER_PUSH} ${USER}/loader_vehicle_statistics
+	${DOCKER_PUSH} ${USER}/senderreport_vehicle_statistics
+
+docker/pruneimages:
+	docker image prune -a -f
+
+docker/prepareimages: docker/pruneimages docker/buildimages docker/pushimages
+
 clean:
 	${DOCKER_COMPOSE} ./env/datasource/docker-compose.yml down -v 
 	${DOCKER_COMPOSE} ./env/airflow/docker-compose.yml down -v 
 	${DOCKER_COMPOSE} ./env/datawarehouse/docker-compose.yml down -v
-	docker image prune -a -f
+	make docker/pruneimages
