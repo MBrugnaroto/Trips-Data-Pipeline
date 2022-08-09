@@ -1,0 +1,23 @@
+version: '3'
+services:
+  postgres:
+    build: .
+    hostname: dw-analytics
+    container_name: dw-analytics
+    ports:
+      - "3307:5432"
+    volumes:
+      - dwanalytics:/var/lib/postgresql/data 
+      - type: bind
+        source: /home/mbrugnar/workspace/Data-Pipeline-Mobi/app/reports
+        target: /usr/src/app/reports
+    networks:
+      - analytics-network
+
+networks: 
+  analytics-network:
+    name: analytics-network
+    driver: bridge
+
+volumes:
+  dwanalytics:
