@@ -26,7 +26,7 @@ def emailDispacher(report, month_ref):
     try:
         EmailDispacher(
             email_address=os.environ["EADDRESS"],
-            email_password=os.environ["PASSWORD"],
+            email_password=os.environ["EPASSWORD"],
             destination_email=os.environ["EDESTIONATION"],
             subject="Your report",
             content=getContent(month_ref),
@@ -45,4 +45,4 @@ def parse_args() -> str:
 
 
 if __name__ == "__main__":
-    emailDispacher(reports=parse_args()[0], month_ref=parse_args()[1])
+    emailDispacher(report=parse_args()[0], month_ref=parse_args()[1])
