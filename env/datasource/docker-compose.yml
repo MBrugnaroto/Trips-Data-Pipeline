@@ -1,0 +1,21 @@
+version: '3'
+services:
+  postgres:
+    build: .
+    hostname: postgres-pipeline
+    container_name: postgres-pipeline
+    ports:
+      - "5432:5432"
+    volumes:
+      - sourcedata:/var/lib/postgresql/data 
+    networks:
+      - debezium-compose-network
+
+networks: 
+  debezium-compose-network:
+    name: debezium-compose-network
+    driver: bridge
+
+volumes:
+  sourcedata:
+  
