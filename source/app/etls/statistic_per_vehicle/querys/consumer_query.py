@@ -1,4 +1,4 @@
-_CONSUMER_GET_STATISTICS = \
+CONSUMER_GET_STATISTICS = \
     """
     SELECT 
         vehicle_id, 
@@ -10,7 +10,7 @@ _CONSUMER_GET_STATISTICS = \
     GROUP BY vehicle_id
     """
 
-_CONSUMER_INSERT_STATISTICS = \
+CONSUMER_INSERT_STATISTICS = \
     """
     INSERT INTO {table}({columns}) 
     VALUES %s

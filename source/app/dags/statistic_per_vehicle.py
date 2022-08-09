@@ -13,7 +13,10 @@ ENV = {
     'PORT': Variable.get("PORT"),
     'USER': Variable.get("USER"),
     'PASSWORD': Variable.get("PASSWORD"),
-    'PURL': Variable.get("PURL")
+    'PURL': Variable.get("PURL"),
+    'EADDRESS': Variable.get("EADDRESS"),
+    'EPASSWORD': Variable.get("EPASSWORD"),
+    'EDESTIONATION': 'projectmanageracc1@gmail.com',
 }
 
 VOLUME = [
@@ -24,7 +27,7 @@ ARGS = {
     "owner": "root",
     "depends_on_past": False,
     "start_date": datetime(2022, 8, 1),
-    "schedule_interval": "0 0 1 * *"
+    "schedule_interval": "@monthly"
 }
 
 TIMESTEMP_FORMAT = '%m-%Y'

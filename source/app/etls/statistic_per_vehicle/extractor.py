@@ -1,14 +1,15 @@
 import os
 import argparse
 import pandas as pd
-from pathlib import Path
-from os.path import join
-from sqlalchemy import create_engine   
 import consumer_query
+from pathlib import Path
+from os import path
+from sqlalchemy import create_engine   
+
 
 
 SOURCE_FOLDER = str(Path(__file__).parents[0])
-PATH_REPORTS = join(
+PATH_REPORTS = path.join(
     SOURCE_FOLDER,
     "reports",
     "{filename}.csv",
@@ -19,7 +20,7 @@ def get_engine():
     return create_engine(url=os.environ["PURL"])
 
 
-def get_report(report, consumer_id):
+def extract_report(report, consumer_id):
     report.to_csv(
         PATH_REPORTS.format(filename=consumer_id),
         index=False
@@ -38,15 +39,19 @@ def execute(report_name):
 
     with engine.connect() as conn:
         valid_process(report_name)
-        consumer_report = pd.read_sql(consumer_query._CONSUMER_GET_STATISTICS, conn)
+        consumer_report = pd.read_sql(consumer_query.CONSUMER_GET_STATISTICS, conn)
 
-    get_report(consumer_report, report_name)
+    extract_report(consumer_report, report_name)
+
+
+def parse_args() -> str:
+    parser = argparse.ArgumentParser(description="Extract Reports")
+    parser.add_argument("--report", required=True)
+    args = parser.parse_args()
+    print(type(args.report))
+    return args.report
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Extract Reports")
-
-    parser.add_argument("--report", required=True)
-    args = parser.parse_args()
-
-    execute(args.report)
+    execute(report_name=parse_args())
+    

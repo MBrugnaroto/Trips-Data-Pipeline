@@ -8,9 +8,6 @@ services:
       - "3307:5432"
     volumes:
       - dwanalytics:/var/lib/postgresql/data 
-      - type: bind
-        source: /home/mbrugnar/workspace/Data-Pipeline-Mobi/app/reports
-        target: /usr/src/app/reports
     networks:
       - analytics-network
 

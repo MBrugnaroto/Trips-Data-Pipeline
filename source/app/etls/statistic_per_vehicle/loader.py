@@ -37,27 +37,27 @@ def upload_data(report):
     statistics_tuple = [tuple(x) for x in consumer_df.to_numpy()]
     cols = ",".join(list(consumer_df.columns))
 
-    query = consumer_query._CONSUMER_INSERT_STATISTICS.format(table='consumer_statistics', columns=cols)
-    cursor = conn.cursor()
-
-    try:
-        psyex.execute_values(cursor, query, statistics_tuple)
-        conn.commit()
-    except Exception as e:
-        conn.rollback()
-        raise Exception('Load data error: ', e)
-
-    cursor.close()
+    query = consumer_query.CONSUMER_INSERT_STATISTICS.format(table='consumer_statistics', columns=cols)
+    
+    with conn.cursor() as c:
+        try:
+            psyex.execute_values(c, query, statistics_tuple)
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            raise Exception('Load data error: ', e)
 
 
 def execute(report):
-    upload_data(PATH_REPORTS.format(filename=report))
+    upload_data(report=PATH_REPORTS.format(filename=report))
+
+
+def parse_args() -> str:
+    parser = argparse.ArgumentParser(description="Load Reports")
+    parser.add_argument("--report", required=True)
+    args = parser.parse_args()
+    return args.report
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Load Reports")
-
-    parser.add_argument("--report", required=True)
-    args = parser.parse_args()
-
-    execute(args.report)
+    execute(report=parse_args())

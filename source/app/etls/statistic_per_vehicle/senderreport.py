@@ -1,17 +1,17 @@
+import os
 import argparse
 from pathlib import Path
-from os.path import join
+from os import path
 from shutil import ExecError
 from EmailDispacherService import EmailDispacher
 
 
 def getAttachment(report):
     if report:
-        return join(
+        return path.join(
             str(Path(__file__).parents[0]),
             f"reports/{report}.csv"
             )
-            
     return None
 
 
@@ -25,9 +25,9 @@ def getContent(month_ref):
 def emailDispacher(report, month_ref):
     try:
         EmailDispacher(
-            email_address="projectmanageracc1@gmail.com",
-            email_password="hhbsffjsrpaioaqm",
-            destination_email="projectmanageracc1@gmail.com",
+            email_address=os.environ["EADDRESS"],
+            email_password=os.environ["PASSWORD"],
+            destination_email=os.environ["EDESTIONATION"],
             subject="Your report",
             content=getContent(month_ref),
             attachment=getAttachment(report)
@@ -36,11 +36,13 @@ def emailDispacher(report, month_ref):
         raise ExecError("Error sending report: ", e)
 
 
-if __name__ == "__main__":
+def parse_args() -> str:
     parser = argparse.ArgumentParser(description="Send Report")
-
     parser.add_argument("--month-ref", required=True)
     parser.add_argument("--report", required=False)
     args = parser.parse_args()
+    return args.report, args.month_ref
 
-    emailDispacher(args.report, args.month_ref)
+
+if __name__ == "__main__":
+    emailDispacher(reports=parse_args()[0], month_ref=parse_args()[1])
