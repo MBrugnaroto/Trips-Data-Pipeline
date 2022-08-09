@@ -1,0 +1,7 @@
+# Folders
+mobi-env/
+env/airflow/dags
+env/airflow/enlogs
+env/airflow/logs
+env/airflow/plugins
+source/data/
