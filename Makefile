@@ -19,11 +19,9 @@ docker/datawarehouse:
 	${DOCKER_COMPOSE} ./env/datawarehouse/docker-compose.yml up -d
 
 docker/buildimages:
-	${DOCKER_BUILD} -t ${USER}/datasource_postgres:latest -f env/datasource/Dockerfile
-	${DOCKER_BUILD} -t ${USER}/datawarehouse_postgres:latest -f env/datawarehouse/Dockerfile
-	${DOCKER_BUILD} -t ${USER}/extractor_vehicle_statistics:latest -t mbrugnar/extractor_vehicle_statistics:v1.0 -f env/app/statistic_per_vehicle/extractor/Dockerfile
-	${DOCKER_BUILD} -t ${USER}/loader_vehicle_statistics:latest -t mbrugnar/loader_vehicle_statistics:v1.0 -f env/app/statistic_per_vehicle/loader/Dockerfile
-	${DOCKER_BUILD} -t ${USER}/senderreport_vehicle_statistics:latest -t mbrugnar/senderreport_vehicle_statistics:v1.0 -f env/app/statistic_per_vehicle/sender/Dockerfile
+	${DOCKER_BUILD} -t ${USER}/extractor_vehicle_statistics:latest -t ${USER}/extractor_vehicle_statistics:v1.0 -f env/app/statistic_per_vehicle/extractor/Dockerfile
+	${DOCKER_BUILD} -t ${USER}/loader_vehicle_statistics:latest -t ${USER}/loader_vehicle_statistics:v1.0 -f env/app/statistic_per_vehicle/loader/Dockerfile
+	${DOCKER_BUILD} -t ${USER}/senderreport_vehicle_statistics:latest -t ${USER}/senderreport_vehicle_statistics:v1.0 -f env/app/statistic_per_vehicle/sender/Dockerfile
 
 docker/pushimages:
 	${DOCKER_PUSH} ${USER}/extractor_vehicle_statistics
