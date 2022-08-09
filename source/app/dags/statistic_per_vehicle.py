@@ -69,7 +69,7 @@ with DAG(
             task_id='senderreport_vehicle_statistics',
             image='mbrugnar/senderreport_vehicle_statistics:latest',
             container_name='senderreport_vehicle_statistics',
-            command="senderreport.py --month-ref {{"f"execution_date.strftime('{ '%B/Y' }')""}} --report consumer-{{"f"execution_date.strftime('{ TIMESTEMP_FORMAT }')""}}",
+            command="senderreport.py --month-ref {{"f"execution_date.strftime('{ '%B/%Y' }')""}} --report consumer-{{"f"execution_date.strftime('{ TIMESTEMP_FORMAT }')""}}",
             environment=ENV,
             force_pull=True,
             auto_remove=True,
