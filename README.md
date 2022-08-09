@@ -72,4 +72,10 @@ mobi7_code_interview
 consumer_statistics
 ```
 
-NOTE: Airflow grid is not showing up on the platform. The reason can see in this [Github](https://github.com/apache/airflow/discussions/23908) thread. The fix forecast is for Airflow version 2.3.2.
+NOTE: Airflow grid is not showing up on the platform. The reason can see in this [Github](https://github.com/apache/airflow/discussions/23908) thread. The fix forecast is for Airflow version 2.3.2. But if you want the Airflow grid to appear, log in to the platform using the following credentials:
+
+* Airflow login:
+```
+user: airflow
+password: airflow
+```
