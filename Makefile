@@ -7,7 +7,7 @@ all: system/env docker/source docker/airflow docker/datawarehouse docker/kafka s
 
 system/env:
 	mkdir -p source/data source/data/statistic_per_vehicle
-	sh env/airflow/prepare-variables.sh
+	sh yourconfigs.sh
 
 docker/source:
 	${DOCKER_COMPOSE} ./env/datasource/docker-compose.yml up -d
