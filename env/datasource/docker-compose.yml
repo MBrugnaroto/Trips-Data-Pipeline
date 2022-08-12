@@ -2,14 +2,19 @@ version: '3'
 services:
   postgres:
     build: .
-    hostname: postgres-pipeline
-    container_name: postgres-pipeline
+    hostname: postgres-source
+    container_name: postgres-source
     ports:
       - "5432:5432"
     volumes:
       - sourcedata:/var/lib/postgresql/data 
     networks:
       - debezium-compose-network
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      retries: 5
+    restart: always
 
 networks: 
   debezium-compose-network:
