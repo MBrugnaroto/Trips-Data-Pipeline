@@ -48,7 +48,7 @@ This repository presents a simple pipeline to get statistics per vehicle from a 
 ## How to Run:
 The steps to set up the environment are a bit complex. ```So be careful```.
 
-1. Create an S3 bucket called ```trip-statistics``` ([Creating a bucket](https://docs.aws.amazon.com/AmazonS3/latest/userguide/create-bucket-overview.html)) - AWS Region: us-east-1
+1. Create an S3 bucket called ```trip-statistics``` ([Creating a bucket](https://docs.aws.amazon.com/AmazonS3/latest/userguide/create-bucket-overview.html)), all public acess - AWS Region: us-east-1
 2. Fill your email, AWS access key and AWS secrete access key in the ```yourconfig.sh``` file (it's in the root directory of the repository)
 3. Finally, with the terminal open in the root directory of the repository, run the following command:
 ```
