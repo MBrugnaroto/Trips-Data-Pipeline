@@ -5,14 +5,14 @@ import psycopg2.extras as psyex
 import pandas as pd
 from pathlib import Path
 from os.path import join
-import consumer_query
+from generic_dml import INSERT
 
 
 SOURCE_FOLDER = str(Path(__file__).parents[0])
 PATH_REPORTS = join(
     SOURCE_FOLDER,
     "reports",
-    "{filename}.csv",
+    "consumer-{report_date}.csv",
 )
 DW_CONNECT = {
     "host": os.environ["HOST"],
@@ -23,21 +23,21 @@ DW_CONNECT = {
 }
 
 
-def get_conn():
+def get_conn() -> psycopg2:
     try:
         return psycopg2.connect(**DW_CONNECT)
     except Exception as e:
         raise Exception("Get connection error: ", e)
 
 
-def upload_data(report):
+def upload_data(report: str) -> None:
     conn = get_conn()
 
     consumer_df = pd.read_csv(report)
     statistics_tuple = [tuple(x) for x in consumer_df.to_numpy()]
     cols = ",".join(list(consumer_df.columns))
 
-    query = consumer_query.CONSUMER_INSERT_STATISTICS.format(table='consumer_statistics', columns=cols)
+    query = INSERT.format(table='consumer_statistics', columns=cols)
     
     with conn.cursor() as c:
         try:
@@ -48,16 +48,16 @@ def upload_data(report):
             raise Exception('Load data error: ', e)
 
 
-def execute(report):
-    upload_data(report=PATH_REPORTS.format(filename=report))
+def execute(report_date: str) -> None:
+    upload_data(report=PATH_REPORTS.format(report_date=report_date))
 
 
 def parse_args() -> str:
     parser = argparse.ArgumentParser(description="Load Reports")
-    parser.add_argument("--report", required=True)
+    parser.add_argument("--report_date", required=True)
     args = parser.parse_args()
-    return args.report
+    return args.report_date
 
 
 if __name__ == "__main__":
-    execute(report=parse_args())
+    execute(report_date=parse_args())

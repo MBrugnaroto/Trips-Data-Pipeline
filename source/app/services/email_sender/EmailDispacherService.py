@@ -4,7 +4,13 @@ from email.message import EmailMessage
 
 class EmailDispacher:
     def __init__(
-        self, email_address, email_password, destination_email, subject, content = None, attachment = None
+        self,
+        email_address,
+        email_password,
+        destination_email,
+        subject,
+        content=None,
+        attachment=None,
     ) -> None:
         self.email_address = email_address
         self.email_password = email_password
@@ -12,14 +18,14 @@ class EmailDispacher:
         self.subject = subject
         self.content = content
         self.attachment = attachment
-    
 
-    def execute(self):
+
+    def execute(self) -> None:
         msg = self.configSender()
         self.sendMail(msg)
 
 
-    def configSender(self):
+    def configSender(self) -> EmailMessage:
         msg = EmailMessage()
         msg["Subject"] = self.subject
         msg["From"] = self.email_address
@@ -28,7 +34,7 @@ class EmailDispacher:
 
         if self.attachment:
             try:
-                filename = self.attachment.split('/')[-1]
+                filename = self.attachment.split("/")[-1]
                 with open(self.attachment, "rb") as file:
                     msg.add_attachment(
                         file.read(),
@@ -37,15 +43,17 @@ class EmailDispacher:
                         filename=filename,
                     )
             except Exception as e:
-                raise Exception("Error: ", e)
-
+                print("Attachment: ", e)
+                return None
         return msg
 
 
-    def sendMail(self, msg):
-        try:
-            with SMTP_SSL("smtp.gmail.com", 465) as smtp:
-                smtp.login(self.email_address, self.email_password)
-                smtp.send_message(msg)
-        except Exception as e:
-            raise Exception("Error: ", e)
+    def sendMail(self, msg: EmailMessage) -> None:
+        if msg:
+            try:
+                with SMTP_SSL("smtp.gmail.com", 465) as smtp:
+                    smtp.login(self.email_address, self.email_password)
+                    smtp.send_message(msg)
+            except Exception as e:
+                raise Exception("Send mail: ", e)
+        print("Email not sent")

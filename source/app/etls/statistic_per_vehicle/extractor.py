@@ -1,57 +1,85 @@
 import os
 import argparse
-import pandas as pd
-import consumer_query
+import dask.dataframe as daskdf
 from pathlib import Path
 from os import path
-from sqlalchemy import create_engine   
-
+from typing import List
 
 
 SOURCE_FOLDER = str(Path(__file__).parents[0])
-PATH_REPORTS = path.join(
+REPORT_PATH = path.join(
     SOURCE_FOLDER,
     "reports",
-    "{filename}.csv",
+    "consumer-{month}-{year}.csv",
+)
+S3_TRIP_TOPIC_URI = path.join(
+    "s3://trip-statistics/topics/kconnectpsql.public.trip",
+    "year={year}",
+    "month={month}/",
 )
 
 
-def get_engine():
-    return create_engine(url=os.environ["PURL"])
+def valid_process(report: str) -> None:
+    if os.path.exists(report):
+        raise FileExistsError(f"The process has already been executed this month")
 
 
-def extract_report(report, consumer_id):
-    report.to_csv(
-        PATH_REPORTS.format(filename=consumer_id),
-        index=False
+def extract_report(report: daskdf, report_path: str) -> None:
+    report.compute().to_csv(
+        report_path,
+        header=["vehicle_id", "total_trips", "total_distance", "total_moving", "total_idle"],
+        index=False,
     )
 
 
-def valid_process(report_name):
-    file = PATH_REPORTS.format(filename=report_name)
-
-    if os.path.exists(file):
-        raise FileExistsError(f"the process has already been executed this month")
-
-
-def execute(report_name):
-    engine = get_engine()
-
-    with engine.connect() as conn:
-        valid_process(report_name)
-        consumer_report = pd.read_sql(consumer_query.CONSUMER_GET_STATISTICS, conn)
-
-    extract_report(consumer_report, report_name)
+def report_df(month: str, year: str) -> daskdf:
+    return daskdf.read_parquet(
+        S3_TRIP_TOPIC_URI.format(year=year, month=month),
+        engine="fastparquet",
+        columns=[
+            "after.id",
+            "after.vehicle_id",
+            "after.total_distance",
+            "after.total_moving",
+            "after.total_idle",
+        ],
+        ignore_metadata_file=True,
+    )
 
 
-def parse_args() -> str:
+def get_vehicle_statistics(report_df: daskdf) -> daskdf:
+    return (
+        report_df.groupby(["after.vehicle_id"])
+        .agg(
+            {
+                "after.id": "count",
+                "after.total_distance": "sum",
+                "after.total_moving": "sum",
+                "after.total_idle": "sum",
+            }
+        )
+        .reset_index()
+    )
+
+
+def execute(month: str, year: str) -> None:
+    report_path = REPORT_PATH.format(month=month, year=year)
+
+    valid_process(report=report_path)
+    consumer_report = get_vehicle_statistics(
+        report_df=report_df(month=month, year=year)
+    )
+    extract_report(report=consumer_report, report_path=report_path)
+
+
+def parse_args() -> List[str]:
     parser = argparse.ArgumentParser(description="Extract Reports")
-    parser.add_argument("--report", required=True)
+    parser.add_argument("--month", required=True)
+    parser.add_argument("--year", required=True)
     args = parser.parse_args()
-    print(type(args.report))
-    return args.report
+    return args.month, args.year
 
 
 if __name__ == "__main__":
-    execute(report_name=parse_args())
-    
+    args = parse_args()
+    execute(month=args[0], year=args[1])
