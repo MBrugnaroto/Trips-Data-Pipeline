@@ -3,11 +3,11 @@ DOCKER_BUILD := docker build .
 DOCKER_PUSH := docker push --all-tags
 USER := $(shell whoami)
 
-all: system/env docker/source docker/airflow docker/datawarehouse 
+all: system/env docker/source docker/airflow docker/datawarehouse docker/kafka system/createconnectors
 
 system/env:
 	mkdir -p source/data source/data/statistic_per_vehicle
-	sh prepare-variables.sh
+	sh env/airflow/prepare-variables.sh
 
 docker/source:
 	${DOCKER_COMPOSE} ./env/datasource/docker-compose.yml up -d
@@ -17,6 +17,12 @@ docker/airflow:
 
 docker/datawarehouse: 
 	${DOCKER_COMPOSE} ./env/datawarehouse/docker-compose.yml up -d
+
+docker/kafka:
+	${DOCKER_COMPOSE} ./env/kafka/docker-compose.yml up -d
+
+system/createconnectors:
+	sh env/kafka/create-source-sink-connectors.sh
 
 docker/buildimages:
 	${DOCKER_BUILD} -t ${USER}/extractor_vehicle_statistics:latest -t ${USER}/extractor_vehicle_statistics:v1.0 -f env/app/statistic_per_vehicle/extractor/Dockerfile
@@ -34,6 +40,7 @@ docker/pruneimages:
 docker/prepareimages: docker/pruneimages docker/buildimages docker/pushimages
 
 clean:
+	${DOCKER_COMPOSE} ./env/kafka/docker-compose.yml down -v
 	${DOCKER_COMPOSE} ./env/datasource/docker-compose.yml down -v 
 	${DOCKER_COMPOSE} ./env/airflow/docker-compose.yml down -v 
 	${DOCKER_COMPOSE} ./env/datawarehouse/docker-compose.yml down -v
