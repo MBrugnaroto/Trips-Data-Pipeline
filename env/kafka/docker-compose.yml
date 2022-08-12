@@ -42,8 +42,8 @@ services:
       CONFIG_STORAGE_TOPIC: my_connect_configs
       OFFSET_STORAGE_TOPIC: my_connect_offsets
       STATUS_STORAGE_TOPIC: my_connect_statuses
-      AWS_ACCESS_KEY_ID: 'put your s3 key here'
-      AWS_SECRET_ACCESS_KEY: 'put your s3 secrete key here'
+      AWS_ACCESS_KEY_ID: 'prepare_variable_script_will_complete'
+      AWS_SECRET_ACCESS_KEY: 'prepare_variable_script_will_complete'
     depends_on:
       - kafka-debezium
     networks:
