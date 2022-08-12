@@ -1,0 +1,27 @@
+{
+    "name": "s3-confluent-sink-trip",
+    "config": {
+        "connector.class": "io.confluent.connect.s3.S3SinkConnector",
+        "tasks.max": "1",
+        "topics": "kconnectpsql.public.trip",
+        "s3.region": "us-east-1",
+        "s3.bucket.name": "trip-statistics",
+        "flush.size": "60000",
+        "rotate.schedule.interval.ms": "10000",
+        "storage.class": "io.confluent.connect.s3.storage.S3Storage",
+        "format.class": "io.confluent.connect.s3.format.parquet.ParquetFormat",
+        "schema.generator.class": "io.confluent.connect.storage.hive.schema.DefaultSchemaGenerator",
+        "partitioner.class": "io.confluent.connect.storage.partitioner.TimeBasedPartitioner",
+        "path.format": "'year'=YYYY/'month'=MM",
+        "partition.duration.ms": "2629746000",
+        "locale": "pt_BR",
+        "timezone": "UTC",
+        "schema.compatibility": "NONE",
+        "behavior.on.null.values": "ignore",
+        "transforms": "allowOnlyInsertions",
+        "transforms.allowOnlyInsertions.type": "io.confluent.connect.transforms.Filter$Value",
+        "transforms.allowOnlyInsertions.filter.condition": "$[?(@.op == 'r' || @.op == 'c')]",
+        "transforms.allowOnlyInsertions.filter.type": "include", 
+        "transforms.allowOnlyInsertions.missing.or.null.behavior": "exclude"
+    }
+}

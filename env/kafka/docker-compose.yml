@@ -1,0 +1,54 @@
+version: '3.9'
+
+services:
+  zookeeper-debezium:
+    image: debezium/zookeeper:1.4
+    container_name: zookeeper-debezium
+    hostname: zookeeper-debezium
+    ports:
+      - 2181:2181
+    networks:
+      - debezium-compose-network
+
+  kafka-debezium:
+    image: debezium/kafka:1.4
+    container_name: kafka-debezium
+    hostname: kafka-debezium
+    ports:
+      - 9092:9092
+      - 29092:29092
+    depends_on:
+      - zookeeper-debezium
+    environment:
+      ZOOKEEPER_CONNECT: zookeeper-debezium:2181
+      KAFKA_ADVERTISED_LISTENERS: LISTENER_EXT://localhost:29092,LISTENER_INT://kafka-debezium:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_INT:PLAINTEXT,LISTENER_EXT:PLAINTEXT
+      KAFKA_LISTENERS: LISTENER_INT://0.0.0.0:9092,LISTENER_EXT://0.0.0.0:29092
+      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_INT
+    networks:
+      - debezium-compose-network 
+
+  connect-debezium:
+    build: 
+      context: .
+      dockerfile: DockerfileConnectDebezium
+    container_name: connect-debezium
+    hostname: connect-debezium
+    ports:
+      - 8083:8083
+    environment:
+      BOOTSTRAP_SERVERS: kafka-debezium:9092
+      GROUP_ID: 1
+      CONFIG_STORAGE_TOPIC: my_connect_configs
+      OFFSET_STORAGE_TOPIC: my_connect_offsets
+      STATUS_STORAGE_TOPIC: my_connect_statuses
+      AWS_ACCESS_KEY_ID: 'put your s3 key here'
+      AWS_SECRET_ACCESS_KEY: 'put your s3 secrete key here'
+    depends_on:
+      - kafka-debezium
+    networks:
+      - debezium-compose-network
+
+networks: 
+  debezium-compose-network:
+    external: true

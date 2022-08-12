@@ -1,0 +1,10 @@
+FROM debezium/connect:1.4
+
+RUN mkdir -p /kafka/connect/confluentinc-kafka-connect-s3-10.1.0 
+RUN mkdir -p /kafka/connect/confluentinc-connect-transforms-1.4.3
+
+COPY ./connectors/confluentinc-kafka-connect-s3-10.1.0/ /kafka/connect/confluentinc-kafka-connect-s3-10.1.0/ 
+COPY ./connectors/confluentinc-connect-transforms-1.4.3/ /kafka/connect/confluentinc-connect-transforms-1.4.3/
+COPY ./libs/failureaccess-1.0.jar \
+     ./libs/guava-28.2-jre.jar \
+     ./libs/hadoop-client-3.3.0.jar /kafka/libs/
