@@ -5,6 +5,7 @@ This repository presents a simple pipeline to get statistics per vehicle from a 
 ![infra-diagram](imgs/pipeline-diagram.png) 
 
 ## Requirements
+* AWS Account ([sign up](https://aws.amazon.com/pt/free/?trk=eb5111a8-7144-44a0-b89b-294d1572e79e&sc_channel=ps&sc_campaign=acquisition&sc_medium=ACQ-P|PS-GO|Brand|Desktop|SU|Core-Main|Core|BR|EN|Text|PH&s_kwcid=AL!4422!3!507891927296!p!!g!!aws&ef_id=CjwKCAjw9NeXBhAMEiwAbaY4lov5VSOMQRe3mwLVOR3lq0BIXjWjNz9XPqdfNmihktN5Hu2vfoBKfhoC_4gQAvD_BwE:G:s&s_kwcid=AL!4422!3!507891927296!p!!g!!aws&all-free-tier.sort-by=item.additionalFields.SortRank&all-free-tier.sort-order=asc&awsf.Free%20Tier%20Types=*all&awsf.Free%20Tier%20Categories=*all))
 * Unix System
 * Make
 * Docker
@@ -17,15 +18,23 @@ This repository presents a simple pipeline to get statistics per vehicle from a 
 |   |   ├── /plugins
 |   ├── /app
 |   |   ├── /statistic_per_vehicle
-|   |   |   ├── /extractor"
+|   |   |   ├── /extractor
 |   |   |   ├── /loader
 |   |   |   ├── /sender
 |   ├── /datasource
 |   ├── /datawarehouse
+|   ├── /kafka
+|   |   ├── /connectors
+|   |   ├── /libs
+|   |   ├── /sink/config
+|   |   ├── /source/config
+├── /imgs
 ├── /source
 |   ├── /app
 |   |   |   ├── /dags
 |   |   |   ├── /etls
+|   |   |   |   ├── /statistic_per_vehicle
+|   |   |   |   |   ├── querys
 |   |   |   ├── /services
 |   |   |   |   ├── /email_sender
 |   ├── /data
@@ -36,9 +45,11 @@ This repository presents a simple pipeline to get statistics per vehicle from a 
 ![s3-structure](imgs/s3-structure.png) 
 
 ## How to Run:
-The steps to set up the environment are a bit complex so be careful.
+The steps to set up the environment are a bit complex. ```So be careful```.
 
-* In the root directory of the repository, run the following command in the terminal:
+1. Create an S3 bucket called ```trip-statistics``` ([Creating a bucket](https://docs.aws.amazon.com/AmazonS3/latest/userguide/create-bucket-overview.html))
+2. Fill your email, AWS access key and AWS secrete access key in the ```yourconfig.sh``` file (it's in the root directory of the repository)
+3. Finally, with the terminal open in the root directory of the repository, run the following command:
 ```
 $ make
 ```
@@ -47,7 +58,7 @@ $ make
 $ make clean
 ```
 
-Note: You can individually starts the components env. Just run the make command with the following parameters: system/env, docker/source, docker/airflow or docker/datawarehouse. But keep in mind that some components have dependencies.
+Note: You can individually starts the env components using make command. But keep in mind that some components have dependencies.
 
 With environment up you can access the Airflow to trigger the statistic per vehicle dag.
 
@@ -55,12 +66,14 @@ With environment up you can access the Airflow to trigger the statistic per vehi
 ```
 localhost:8080
 ```
-* URI to access the data warehouse (postgresdb):
+
+Environment information:
+* URI to access the ```data warehouse``` (postgresdb):
 ```
 localhost:3307
 ```
 
-* Data warehouse login:
+* ```Data warehouse``` login:
 ```
 user: postgres
 password: postgres
