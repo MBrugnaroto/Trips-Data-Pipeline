@@ -1,3 +1,3 @@
-pandas
-psycopg2
-sqlalchemy
+dask[complete]
+fastparquet
+s3fs
