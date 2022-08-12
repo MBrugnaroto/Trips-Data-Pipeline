@@ -10,6 +10,10 @@ services:
       - dwanalytics:/var/lib/postgresql/data 
     networks:
       - analytics-network
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      retries: 5
 
 networks: 
   analytics-network:

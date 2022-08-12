@@ -1,9 +1,9 @@
 CREATE TABLE public.consumer_statistics(
 	vehicle_id INT NOT NULL,
-    total_viagens INT,
-    total_km FLOAT,
-    total_mv_h FLOAT,
-    total_pd_h FLOAT,
+    total_trips INT,
+    total_distance FLOAT,
+    total_moving FLOAT,
+    total_idle FLOAT,
     ref_month VARCHAR DEFAULT TO_CHAR(CURRENT_TIMESTAMP,'MM-YYYY') NOT NULL
 );
 
