@@ -2,7 +2,7 @@
 
 This repository presents a simple pipeline to get statistics per vehicle from a data source. This project has the idea of providing the user with a view of the total trips made, total kilometers traveled, total moving time and total stopped time per vehicle and per month.
 
-![infra-diagram](pipeline-diagram.png) 
+![infra-diagram](imgs/pipeline-diagram.png) 
 
 ## Requirements
 * Unix System
@@ -31,6 +31,9 @@ This repository presents a simple pipeline to get statistics per vehicle from a 
 |   ├── /data
 |   |   |   ├── /statistic_per_vehicle
 ```
+
+## S3 - Folders Structure 
+![s3-structure](imgs/s3-structure.png) 
 
 ## How to Run:
 The steps to set up the environment are a bit complex so be careful.
