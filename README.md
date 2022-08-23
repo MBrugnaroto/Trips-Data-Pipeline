@@ -29,6 +29,8 @@ This repository presents a simple pipeline to get statistics per vehicle from a 
 |   |   ├── /libs
 |   |   ├── /sink/config
 |   |   ├── /source/config
+|   ├── /kibana
+|   |   ├── /pgsync
 ├── /imgs
 ├── /source
 |   ├── /app
@@ -95,4 +97,14 @@ NOTE: Airflow grid is not showing up on the platform. The reason can see in this
 ```
 user: airflow
 password: airflow
+```
+
+* Analytics dasbhoard:
+
+![analytics-dashboard](imgs/analytics-dashboard.png)
+
+NOTE: you can create your own Kibana dashboard via the following url:
+
+```
+localhost:5601
 ```
