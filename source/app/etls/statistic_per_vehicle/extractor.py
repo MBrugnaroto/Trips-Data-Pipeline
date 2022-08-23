@@ -1,6 +1,7 @@
 import os
 import argparse
 import dask.dataframe as daskdf
+import pandas as pd
 from pathlib import Path
 from os import path
 from typing import List
@@ -19,20 +20,54 @@ S3_TRIP_TOPIC_URI = path.join(
 )
 
 
-def valid_process(report: str) -> None:
-    if os.path.exists(report):
-        raise FileExistsError(f"The process has already been executed this month")
-
-
-def extract_report(report: daskdf, report_path: str) -> None:
-    report.compute().to_csv(
+def extract_report(report: pd.DataFrame, report_path: str) -> None:
+    report.to_csv(
         report_path,
-        header=["vehicle_id", "total_trips", "total_distance", "total_moving", "total_idle"],
+        columns=[
+            "after.vehicle_id",
+            "after.id",
+            "after.total_distance",
+            "total_moving_h",
+            "total_idle_h",
+        ],
+        header=[
+            "vehicle_id",
+            "total_trips",
+            "total_distance",
+            "total_moving",
+            "total_idle",
+        ],
         index=False,
     )
 
 
-def report_df(month: str, year: str) -> daskdf:
+def prepare_report(report: daskdf) -> pd.DataFrame:
+    report = report.compute()
+    report[["total_moving_h", "total_idle_h"]] = pd.DataFrame(
+        report.converted_time_measure.tolist(), index=report.index
+    )
+    return report
+
+
+def seconds_to_hours(*argv) -> str:
+    for arg in argv:
+        yield arg / 3600
+
+
+def convert_time_measure(report: daskdf) -> daskdf:
+    return report.apply(
+        lambda x: list(seconds_to_hours(x['after.total_moving'], x['after.total_idle'])),
+        meta=report['after.total_moving'],
+        axis=1,
+    )
+
+
+def convert_measures(report: daskdf) -> pd.DataFrame:
+    report["converted_time_measure"] = convert_time_measure(report=report)
+    return report
+
+
+def read_statistics(month: str, year: str) -> daskdf:
     return daskdf.read_parquet(
         S3_TRIP_TOPIC_URI.format(year=year, month=month),
         engine="fastparquet",
@@ -47,9 +82,9 @@ def report_df(month: str, year: str) -> daskdf:
     )
 
 
-def get_vehicle_statistics(report_df: daskdf) -> daskdf:
+def get_vehicle_statistics(statistics: daskdf) -> daskdf:
     return (
-        report_df.groupby(["after.vehicle_id"])
+        statistics.groupby(["after.vehicle_id"])
         .agg(
             {
                 "after.id": "count",
@@ -62,13 +97,20 @@ def get_vehicle_statistics(report_df: daskdf) -> daskdf:
     )
 
 
+def valid_process(report: str) -> None:
+    if os.path.exists(report):
+        raise FileExistsError(f"The process has already been executed this month")
+
+
 def execute(month: str, year: str) -> None:
     report_path = REPORT_PATH.format(month=month, year=year)
 
     valid_process(report=report_path)
     consumer_report = get_vehicle_statistics(
-        report_df=report_df(month=month, year=year)
+        statistics=read_statistics(month=month, year=year)
     )
+    consumer_report = convert_measures(consumer_report)
+    consumer_report = prepare_report(consumer_report)
     extract_report(report=consumer_report, report_path=report_path)
 
 
