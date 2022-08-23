@@ -63,7 +63,9 @@ $ make clean
 
 Note: You can individually starts the env components using make command. But keep in mind that some components have dependencies.
 
-With environment up you can access the Airflow to trigger the statistic per vehicle dag.
+With environment up you can access the ```Airflow``` to trigger the statistic per vehicle dag.
+
+![analytics-dashboard](imgs/etl-flow.png)
 
 * In your browser access the portal through follwing URL:
 ```
