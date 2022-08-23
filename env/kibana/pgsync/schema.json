@@ -1,0 +1,11 @@
+[
+  {
+    "database": "mobi7_code_interview",
+    "index": "consumer_statistics",
+    "nodes": {
+      "table": "consumer_statistics",
+      "schema": "public",
+      "columns": []
+    }
+  }
+]
