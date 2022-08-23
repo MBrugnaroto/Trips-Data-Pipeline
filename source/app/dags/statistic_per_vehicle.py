@@ -53,7 +53,7 @@ with DAG(dag_id='statistic_per_vehicle', default_args=ARGS, catchup=False) as da
         mounts=VOLUME,
     )
 
-    with TaskGroup(group_id='process_report') as process_report:
+    with TaskGroup(group_id='report_process') as process_report:
         loader = DockerOperator(
             task_id='loader_vehicle_statistics',
             image='mbrugnar/loader_vehicle_statistics:latest',
