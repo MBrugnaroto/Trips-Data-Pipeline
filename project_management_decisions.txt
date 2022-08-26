@@ -1,0 +1,98 @@
+Decisão de projeto:
+- Projeto divido em três partes: análise exploratória do Data Source, elaboração da arquitetura do projeto e desenvolvimento do projeto.
+
+1 - Estratégia de desenvolvimento
+- Etapa 1
+Não apresenta informações de periodocidade e granularidade dos dados (sem a coluna da data de inserção do registro) - eu deduzi como esporádico para os dois casos (dados providos por IOT)
+Não apresenta informações de gerenciamento (periodicidade de limpeza da base - 1x na semana, no mês...)
+
+- Etapa 2
+Módulo 1
+Uma forma de armazenar os novos dados inseridos na data source que não dependece da forma como a data source é gerenciada - ou seja, utilizar ferramentas de data streamming
+para pode disponibilizar os dados em uma base totalmente gerenciada por mim.
+
+Módulo 2
+Orquestração e scheduling mensal do fluxo de trabalho que consolidasse as informações solicidadas no escopo do projeto (dados estatisticos por veículo no mês).
+
+- Etapa 3
+Desenvolvimento
+
+2 - Escolha das tecnologias (trade-off técnico)
+Módulo 1 - Streamming Data Integration 
+Kafka - Característica mais pra point-to-point do que pra pub/sub
+ - Vantagens:
+   - Integração assíncrona orientada por evento (entrega contínua)
+   - Garantia de entrega (armazenamento intermediário)
+   - Alta disponibilidade e Escalabilidade - é possível definir vários brokers dentro de um cluster do kafka e replicar as partições dos tópicos entre eles (replication factor)
+   - Alto throughput - baixa latência
+ - Decisões de projeto:
+   - A escolha do Kafka se deve, principalmente, pelas características do Data Source: os dados são gerados esporádicamente e não possuo controle gerencial sobre o tempo de 
+     disponibilização dos dados - registro histórico e controle sobre o tempo de disponibilização dos dados
+ - Cluster kafka - Debizium
+   - A ideia era modelar uma arquitetura bem simples, com apenas um broker no cluster do kafka e uma particição para o tópico - caso futuramente a arquitetura tiver um gap de processamento
+     tem como aumentar o número de partições no tópico para paralelizar a ingestão dos dados e aumenter o número de brokes caso deseje aumentar a disponibilização desses dados (replicando
+     as participações pelos brokers) 
+ - Cluster kafka connector - Debizium
+   - A ideia era modelar uma arquitetura bem simples, com apenas um worker no cluster do kafka connector e uma task para consumo do tópico (já que possuímos apenas uma partição) - 
+     caso futuramente a arquitetura começe a ter um gap de processamento é preciso aumentar o número de partições no tópico para paralelizar a ingestão dos dados com o aumento de tasks
+     e aumentar o número de workers caso a gente sofra com a inconsistência o worker disponível (aumentando o número de followers da task lead)
+ - Kafka Source Connector - Debizium Postgres Connector (abordagem CDC baseada em log que utiliza o recurso de replicação lógica do Postgres)
+   - Esse conector permite rastrear e propagar as alterações em um banco de dados Postgres com base no seu Write-Ahead Log (Wal). Ou seja, ele permite capturar as alterações confirmadas
+     resultantes de inserts, updates e deletes em row-level (log de transações).
+   - Plug-in de saída: pgoutput. Motivo: ele é mantido pela comunidade do PostgreSql e não é necessário a sua instalção pois já vem por default. Por meio desse plugin é possível que o
+     connector do Kafka leia as alterações produzidas no banco e que foram confirmadas no log de transações.
+   - Conversor Key e Value: JSON - O kafka connector da Debizium por default converte tanto a Key quando o Value para o formato JSON. O Debizium Postgres Connector possibilita a conversão
+     individual da Key e do Value para o formato binário Avro, o que iria garantir uma melhor compactação dos dados e uma melhor eficiência de I/O. Porém, acredito que adicionaria mais
+     complexidade ao projeto, já que teria que levantar uma instância do Schema Registry para gerênciar o esquema. Ele traria ótimo benefícios, mas eu não possuia muito conhecimento sobre.
+   - Vantagens:
+     - Abordagem CDC: 
+		- Replicação Lógica do Postgres: captura orientada a eventos em tempo real, todos os tipos de alteração e não impacta no desempenho do banco pois acessa diretamente 
+		  ao seu sistema de arquivos.
+		- Utilizando Trigger: prejudica o desempenho do banco já que há um aumento no tempo de execução e como é criada uma tabela nova para armazenar as alterações
+		  se quiseremos sincronizar esses dados com outro banco será necessário configurar um pipeline separado para consultar essa nova tabela, o que aumentaria a complexidade e 
+		  geraria custo.
+		- Baseado em consulta: seria necessário modificar o esquema da tabela trip para que tivesse uma coluna de data/hora, sobrecarrega o banco pois é necessário
+		  realizar requisições recorrentes para poder obter as novas alterações (além de não capturar informações de delete), o que também resulta em um disperdício de recurso 
+		  (caso os dados sejam alterados poucas vezes).
+     - Tolerante a falhas: caso ele pare por algum motivo (falhas de comunicação ou problemas de rede p.e.), o conector possui o registro da posição na WAL para cada evento, 
+       e assim que se recupera volta a ler de onde parou (incluindo snapshots)
+
+ - Kafka Sink Connector - Confluent S3 Connector
+   - Documentação
+   - Único que encontrei
+ 
+S3 Bucket (armazenamento de objetos)
+ - Vantangens:
+   - Alta disponibilidade e escalabilidade (sob demanda)
+   - Baixo custo
+   - Flexibilidade na modelagem da arquitetura de armazenamento (estrutura de arquivos, formato de arquivos ..)
+
+Parquet
+ - Vantanges:
+   - Formato de arquivo colunar que fornece otimizações que melhoraram a performance em relação a leitura
+   - Suporta compressão - foi utilizado o SNAPPY pois ele é o padrão do Debizium e mesmo os arquivos compactados possuam um tamanho maior que outras formas de compactação, 
+     eles são compactados muito mais rapidamente com SNAPPY.
+   - Dividido em dados e metadados
+
+Docker
+ - Vantangens:
+   - Alta disponibilidade
+   - Isolamento dos serviços
+   - Economia de recursos - os containers são construídos com base em imagens, que por sua vez possuem layers que podem ser compartilhadas entre outras imagens.
+   - Ambiente de replicação - consigo disponibilizar minha aplicação em qualquer máquina que contenha o docker, não importa qual a stack que foi utilizada pelos containers da aplicação
+
+Módulo 2 - Batch Processing
+Airflow
+   - Desenvolvimento todo em Python com baixo grau de complexidade
+   - Fácil integração com outras ferramentas
+   - Documentação acessível e muito conteúdo produzido pela comunidade
+   - Facilidade de criar e alterar fluxos simples e complexos de dados (DAGs, XCom)
+   - Interface gráfica para acompanhamento dos jobs
+   - Possibilidade de criação de componentes personalizados
+   - Disponibilização de logs para auditoria de erros
+
+DockerOperator
+   - Mesma vantagens do Docker
+
+Dask Dataframe
+   - Biblioteca flexível para computação paralela em Python.
