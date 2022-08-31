@@ -1,4 +1,4 @@
-# Data Pipeline Trips
+# Trips Data Pipeline
 
 This repository presents a simple pipeline to get statistics per vehicle from a data source. This project has the idea of providing the user with a view of the total trips made, total kilometers traveled, total moving time and total stopped time per vehicle and per month.
 
