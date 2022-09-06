@@ -1,11 +1,12 @@
-import os
 import argparse
+import os
+from collections.abc import Iterable
+from os import path
+from pathlib import Path
+
 import dask.dataframe as daskdf
 import pandas as pd
-from pathlib import Path
-from os import path
-from typing import List
-
+from pandas import DataFrame
 
 SOURCE_FOLDER = str(Path(__file__).parents[0])
 REPORT_PATH = path.join(
@@ -41,7 +42,7 @@ def extract_report(report: pd.DataFrame, report_path: str) -> None:
     )
 
 
-def prepare_report(report: daskdf) -> pd.DataFrame:
+def prepare_report(report: DataFrame) -> pd.DataFrame:
     report = report.compute()
     report[["total_moving_h", "total_idle_h"]] = pd.DataFrame(
         report.converted_time_measure.tolist(), index=report.index
@@ -49,25 +50,26 @@ def prepare_report(report: daskdf) -> pd.DataFrame:
     return report
 
 
-def seconds_to_hours(*argv) -> str:
+def seconds_to_hours(*argv) -> Iterable[float]:
     for arg in argv:
         yield arg / 3600
 
 
-def convert_time_measure(report: daskdf) -> daskdf:
+def convert_time_measure(report: DataFrame) -> DataFrame:
     return report.apply(
-        lambda x: list(seconds_to_hours(x['after.total_moving'], x['after.total_idle'])),
+        lambda x: list(seconds_to_hours(
+            x['after.total_moving'], x['after.total_idle'])),
         meta=report['after.total_moving'],
         axis=1,
     )
 
 
-def convert_measures(report: daskdf) -> pd.DataFrame:
+def convert_measures(report: DataFrame) -> pd.DataFrame:
     report["converted_time_measure"] = convert_time_measure(report=report)
     return report
 
 
-def read_statistics(month: str, year: str) -> daskdf:
+def read_statistics(month: str, year: str) -> DataFrame:
     return daskdf.read_parquet(
         S3_TRIP_TOPIC_URI.format(year=year, month=month),
         engine="fastparquet",
@@ -82,7 +84,7 @@ def read_statistics(month: str, year: str) -> daskdf:
     )
 
 
-def get_vehicle_statistics(statistics: daskdf) -> daskdf:
+def get_vehicle_statistics(statistics: DataFrame) -> DataFrame:
     return (
         statistics.groupby(["after.vehicle_id"])
         .agg(
@@ -99,7 +101,8 @@ def get_vehicle_statistics(statistics: daskdf) -> daskdf:
 
 def valid_process(report: str) -> None:
     if os.path.exists(report):
-        raise FileExistsError(f"The process has already been executed this month")
+        raise FileExistsError(
+            f'{"The process has already been executed this month"}')
 
 
 def execute(month: str, year: str) -> None:
@@ -114,7 +117,7 @@ def execute(month: str, year: str) -> None:
     extract_report(report=consumer_report, report_path=report_path)
 
 
-def parse_args() -> List[str]:
+def parse_args() -> tuple:
     parser = argparse.ArgumentParser(description="Extract Reports")
     parser.add_argument("--month", required=True)
     parser.add_argument("--year", required=True)

@@ -1,10 +1,9 @@
-import os
 import argparse
-from pathlib import Path
+import os
 from os import path
-from typing import List
-from EmailDispacherService import EmailDispacher
+from pathlib import Path
 
+from EmailDispacherService import EmailDispacher
 
 SOURCE_FOLDER = str(Path(__file__).parents[0])
 REPORT_PATH = path.join(
@@ -16,7 +15,7 @@ REPORT_PATH = path.join(
 
 def getContent(month_ref: str) -> str:
     return \
-    f'<p>Hello!</p> \
+        f'<p>Hello!</p> \
       <p>We are sending you the report for the month of {month_ref}.</p>\
       <p>Best regards.</p>'
 
@@ -35,7 +34,7 @@ def emailDispacher(report_date: str, month_ref: str) -> None:
         raise Exception("Report dispacher: ", e)
 
 
-def parse_args() -> List[str]:
+def parse_args() -> tuple:
     parser = argparse.ArgumentParser(description="Send Report")
     parser.add_argument("--month-ref", required=True)
     parser.add_argument("--report_date", required=False)

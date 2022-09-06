@@ -1,12 +1,13 @@
-import os
 import argparse
+import os
+from os.path import join
+from pathlib import Path
+
+import pandas as pd
 import psycopg2
 import psycopg2.extras as psyex
-import pandas as pd
-from pathlib import Path
-from os.path import join
-from generic_dml import INSERT
 
+from querys.generic_dml import INSERT
 
 SOURCE_FOLDER = str(Path(__file__).parents[0])
 PATH_REPORTS = join(
@@ -38,7 +39,7 @@ def upload_data(report: str) -> None:
     cols = ",".join(list(consumer_df.columns))
 
     query = INSERT.format(table='consumer_statistics', columns=cols)
-    
+
     with conn.cursor() as c:
         try:
             psyex.execute_values(c, query, statistics_tuple)
