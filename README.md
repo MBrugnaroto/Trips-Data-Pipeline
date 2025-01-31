@@ -1,6 +1,6 @@
 # Trips Data Pipeline
 
-This repository presents a simple pipeline to get statistics per vehicle from a data source. This project has the idea of providing the user with a view of the total trips made, total kilometers traveled, total moving time and total stopped time per vehicle and per month.
+This repository presents a streaming data pipeline using CDC (Change Data Capture), designed to collect, process, and analyze vehicle trip data in real time. The main objective is to provide detailed insights into the performance of each vehicle, including metrics such as the total number of trips made, kilometers traveled, total travel time, and total idle time, aggregated by vehicle and by month.
 
 ![infra-diagram](imgs/pipeline-diagram.png) 
 
